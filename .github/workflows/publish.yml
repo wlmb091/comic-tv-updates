@@ -21,7 +21,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: sdkmanager 'build-tools;35.0.0'
+      - run: bash tools/setup-android.sh 'build-tools;35.0.0'
       - name: Verify digest, signer, package, version and ARM support
         run: node --input-type=module -e "import {verifyIncoming} from './tools/apk-tools.mjs'; verifyIncoming(process.env.ANDROID_HOME+'/build-tools/35.0.0');"
       - name: Draft, upload both assets, then publish
