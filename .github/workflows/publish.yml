@@ -1,0 +1,30 @@
+name: Publish verified APK
+on:
+  push:
+    branches: ['incoming/**']
+    paths: ['incoming/**']
+permissions:
+  contents: write
+concurrency:
+  group: comic-tv-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'wlmb091/comic-tv-updates'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: sdkmanager 'build-tools;35.0.0'
+      - name: Verify digest, signer, package, version and ARM support
+        run: node --input-type=module -e "import {verifyIncoming} from './tools/apk-tools.mjs'; verifyIncoming(process.env.ANDROID_HOME+'/build-tools/35.0.0');"
+      - name: Draft, upload both assets, then publish
+        run: node tools/publish-release.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
